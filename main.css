@@ -1,0 +1,10 @@
+body, html {
+    font-family: sans-serif;
+}
+
+img {
+    image-rendering: -moz-crisp-edges; /* Thanks Firefox */
+    image-rendering: pixelated;
+    height: 32px;
+    width: auto;
+}
