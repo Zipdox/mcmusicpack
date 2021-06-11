@@ -34,10 +34,15 @@ document.getElementById('generate').onclick = async function(){
     for(let disc of discs){
         this.textContent = `Adding ${disc}...`;
 
-        let name = document.getElementById(disc + '-name').value;
+        let name = document.getElementById(disc + '-name').value ? document.getElementById(disc + '-name').value : disc;
         let file = document.getElementById(disc + '-file').files[0];
 
-        if(name == '' || file == undefined) continue;
+        if(file == undefined) continue;
+
+        if(!file.name.endsWith('.ogg')){
+            alert("You added a file that's not Ogg Vorbis, it will be ignored.");
+            continue;
+        }
 
         let data = await readFile(file);
 
@@ -60,9 +65,9 @@ document.getElementById('generate').onclick = async function(){
     await writer.add('pack.mcmeta', new zip.TextReader(JSON.stringify(mcMeta, null, 2)));
 
     this.textContent = 'Adding pack.png...';
-    let iconFIle = document.getElementById('packicon').files[0];
-    if(iconFIle != undefined){
-        let iconData = await readFile(iconFIle);
+    let iconFile = document.getElementById('packicon').files[0];
+    if(iconFile != undefined){
+        let iconData = await readFile(iconFile);
         await writer.add('pack.png', new zip.Uint8ArrayReader(new Uint8Array(iconData)));
     }
     
