@@ -18,6 +18,7 @@ for(let disc of discs){
     let file = document.createElement('input');
     file.setAttribute('type', 'file');
     file.setAttribute('id', disc + '-file');
+    file.setAttribute('accept', '.ogg');
     file.onchange = function(){
         if(this.files[0] == undefined || name.value != "") return;
         name.value = this.files[0].name.substr(0, this.files[0].name.lastIndexOf('.')) || this.files[0].name;
