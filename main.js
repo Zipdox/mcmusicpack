@@ -18,6 +18,10 @@ for(let disc of discs){
     let file = document.createElement('input');
     file.setAttribute('type', 'file');
     file.setAttribute('id', disc + '-file');
+    file.onchange = function(){
+        if(this.files[0] == undefined || name.value != "") return;
+        name.value = this.files[0].name.substr(0, this.files[0].name.lastIndexOf('.')) || this.files[0].name;
+    }
     row.insertCell().appendChild(file);
 
     table.appendChild(row);
@@ -29,7 +33,10 @@ document.getElementById('generate').onclick = async function(){
     const blobWriter = new zip.BlobWriter("application/zip");
     const writer = new zip.ZipWriter(blobWriter);
 
+    let pack_format = document.getElementById('version').value;
+
     let langFileText = '';
+    let langFileObject = {};
 
     for(let disc of discs){
         this.textContent = `Adding ${disc}...`;
@@ -48,20 +55,33 @@ document.getElementById('generate').onclick = async function(){
 
         await writer.add(`assets/minecraft/sounds/records/${disc}.ogg`, new zip.Uint8ArrayReader(new Uint8Array(data)));
 
-        langFileText += `item.record.${disc}.desc=${name}\n`;
+        if(pack_format >= 4){
+            langFileObject[`item.minecraft.music_disc_${disc}.desc`] = name;
+        }else{
+            langFileText += `item.record.${disc}.desc=${name}\n`;
+        }
+    }
 
-        console.log('Added', disc);
+    if(pack_format >= 4){
+        langFileText = JSON.stringify(langFileObject, null, 4);
+    }else{
+        if(langFileText.endsWith('\n')) langFileText = langFileText.slice(0, -1);
     }
 
     this.textContent = 'Adding lang files...';
-    if(langFileText.endsWith('\n')) langFileText = langFileText.slice(0, -1);
     for(let langFile of langFiles){
-        await writer.add(`assets/minecraft/lang/${langFile}`, new zip.TextReader(langFileText));
+        if(pack_format >= 4){
+            await writer.add(`assets/minecraft/lang/${langFile}.json`, new zip.TextReader(langFileText));
+        }else{
+            await writer.add(`assets/minecraft/lang/${langFile}.lang`, new zip.TextReader(langFileText));
+        }
+        
     }
 
     this.textContent = 'Adding pack.mcmeta...';
-    mcMeta = packMCMeta;
+    let mcMeta = packMCMeta;
     mcMeta.pack.description = document.getElementById('packdescription').value ? document.getElementById('packdescription').value : 'A music resource pack';
+    mcMeta.pack.pack_format = pack_format;
     await writer.add('pack.mcmeta', new zip.TextReader(JSON.stringify(mcMeta, null, 2)));
 
     this.textContent = 'Adding pack.png...';
